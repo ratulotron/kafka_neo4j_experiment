@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "redpanda-workshop"
+version = "0.1.0"
+description = ""
+authors = ["Ratul Minhaz <minhaz.ratul@gmail.com>"]
+readme = "README.md"
+packages = [{include = "redpanda_workshop"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flask = "^2.3.2"
+flask-cors = "^4.0.0"
+kafka-python = "^2.0.2"
+smart-open = "^6.3.0"
+pydantic = "^2.1.1"
+neo4j = "^5.11.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+jupyter = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

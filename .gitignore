@@ -1,0 +1,11 @@
+/connect-plugins/
+/data/
+/neo4j/
+
+__pycache__/
+*.py[cod]
+*$py.class
+.tool-versions
+
+.idea
+.vscode

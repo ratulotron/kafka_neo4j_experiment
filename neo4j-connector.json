@@ -1,0 +1,20 @@
+{
+  "name": "Neo4jSinkConnectorJSONString",
+  "config": {
+    "topics": "movies",
+    "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "errors.retry.timeout": "-1",
+    "errors.retry.delay.max.ms": "1000",
+    "errors.tolerance": "all",
+    "errors.log.enable": true,
+    "errors.log.include.messages": true,
+    "neo4j.server.uri": "bolt://neo4j:7687",
+    "neo4j.authentication.basic.username": "neo4j",
+    "neo4j.authentication.basic.password": "password",
+    "neo4j.topic.cypher.my-topic": "CALL apoc.merge.node(\n                [row.label],\n                {hash_id: row.properties.hash_id},\n                row.properties\n            )\n            YIELD node\n            SET node.created_at = coalesce(node.created_at, date())\n            SET node.updated_at = date()\n            RETURN node"
+  }
+}
