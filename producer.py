@@ -1,4 +1,3 @@
-import csv
 import logging
 from confluent_kafka import Producer
 

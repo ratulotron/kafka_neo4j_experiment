@@ -7,7 +7,7 @@ from flask_cors import CORS
 from smart_open import open
 
 
-from admin import bootstrap
+from admin import bootstrap, delete
 from db import Neo4jClient
 from producer import CompanyProducer
 
@@ -15,7 +15,9 @@ from producer import CompanyProducer
 bootstrap()
 app = Flask(__name__)
 cors = CORS(app)
+
 app.config["CORS_HEADERS"] = "Content-Type"
+neo = Neo4jClient("bolt://localhost:7687", "neo4j", "password")
 
 
 @app.route("/load", methods=["GET"])
@@ -49,5 +51,12 @@ def load():
 
 @app.route("/stats", methods=["GET"])
 def stats():
-    neo = Neo4jClient("bolt://localhost:7687", "neo4j", "password")
     return jsonify({"total_companies": neo.stats()})
+
+
+@app.route("/reset", methods=["GET"])
+def reset():
+    delete()
+    bootstrap()
+    neo.reset()
+    return jsonify({"message": "topic reset"})

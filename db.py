@@ -42,3 +42,11 @@ class Neo4jClient:
 
         """, data=data)
         return result.single()[0]
+
+    def reset(self):
+        try:
+            with self.driver.session() as session:
+                result = session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
+                logger.info(result)
+        except Exception as err:
+            logger.error(f"Error resetting database: {err=}, {type(err)=}")
