@@ -8,5 +8,5 @@ consumer:
 	poetry run python consumer.py
 
 reload_conn:
-	http DELETE localhost:8083/connectors/Neo4jSinkConnectorJSONString
-	http POST localhost:8083/connectors < ./neo4j-connector.json
+	poetry run http DELETE localhost:8083/connectors/Neo4jSinkConnectorJSONString
+	poetry run http POST localhost:8083/connectors < ./neo4j-connector.json

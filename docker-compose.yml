@@ -1,12 +1,14 @@
 version: '3.7'
+name: kafka_neo4j_lei
 networks:
-  redpanda_network:
+  kafka_neo4j_lei:
     driver: bridge
 volumes:
   redpanda: null
 services:
   redpanda:
     image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: redpanda
     command:
       - redpanda start
       - --smp 1
@@ -33,7 +35,7 @@ services:
     volumes:
       - redpanda:/var/lib/redpanda/data
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     healthcheck:
       test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"]
       interval: 15s
@@ -65,7 +67,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     depends_on:
       - redpanda
   connect:
@@ -73,7 +75,7 @@ services:
     hostname: connect
     container_name: connect
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     # platform: 'linux/amd64'
     depends_on:
       - redpanda
@@ -103,7 +105,7 @@ services:
   neo4j:
     image: neo4j:latest
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     ports:
       - "7474:7474"
       - "7687:7687"
