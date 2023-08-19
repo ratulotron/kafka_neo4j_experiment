@@ -1,7 +1,7 @@
 version: '3.7'
-name: redpanda-owl-shop
+name: kafka_neo4j_lei
 networks:
-  redpanda_network:
+  kafka_neo4j_lei:
     driver: bridge
 volumes:
   redpanda: null
@@ -35,7 +35,7 @@ services:
     volumes:
       - redpanda:/var/lib/redpanda/data
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     healthcheck:
       test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"]
       interval: 15s
@@ -67,46 +67,45 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     depends_on:
       - redpanda
-#  connect:
-#    image: docker.redpanda.com/redpandadata/connectors:latest
-#    hostname: connect
-#    container_name: connect
-#    networks:
-#      - redpanda_network
-#    # platform: 'linux/amd64'
-#    depends_on:
-#      - redpanda
-#    ports:
-#      - "8083:8083"
-#    volumes:
-#      - ./connect-plugins:/opt/kafka/connect-plugins
-#    environment:
-#      CONNECT_CONFIGURATION: |
-#          key.converter=org.apache.kafka.connect.converters.ByteArrayConverter
-#          value.converter=org.apache.kafka.connect.converters.ByteArrayConverter
-#          group.id=connectors-cluster
-#          offset.storage.topic=_internal_connectors_offsets
-#          config.storage.topic=_internal_connectors_configs
-#          status.storage.topic=_internal_connectors_status
-#          config.storage.replication.factor=-1
-#          offset.storage.replication.factor=-1
-#          status.storage.replication.factor=-1
-#          offset.flush.interval.ms=1000
-#          producer.linger.ms=50
-#          producer.batch.size=131072
-#      CONNECT_BOOTSTRAP_SERVERS: redpanda:9092
-#      CONNECT_GC_LOG_ENABLED: "false"
-#      CONNECT_HEAP_OPTS: -Xms512M -Xmx512M
-#      CONNECT_LOG_LEVEL: info
-#      CONNECT_PLUGIN_PATH: "/opt/kafka/connect-plugins"
+  connect:
+    image: docker.redpanda.com/redpandadata/connectors:latest
+    hostname: connect
+    container_name: connect
+    networks:
+      - kafka_neo4j_lei
+    # platform: 'linux/amd64'
+    depends_on:
+      - redpanda
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./redpanda/connect-plugins:/opt/kafka/connect-plugins
+    environment:
+      CONNECT_CONFIGURATION: |
+        key.converter=org.apache.kafka.connect.converters.ByteArrayConverter
+        value.converter=org.apache.kafka.connect.converters.ByteArrayConverter
+        group.id=connectors-cluster
+        offset.storage.topic=_internal_connectors_offsets
+        config.storage.topic=_internal_connectors_configs
+        status.storage.topic=_internal_connectors_status
+        config.storage.replication.factor=-1
+        offset.storage.replication.factor=-1
+        status.storage.replication.factor=-1
+        offset.flush.interval.ms=1000
+        producer.linger.ms=50
+        producer.batch.size=131072
+      CONNECT_BOOTSTRAP_SERVERS: redpanda:9092
+      CONNECT_GC_LOG_ENABLED: "false"
+      CONNECT_HEAP_OPTS: -Xms512M -Xmx512M
+      CONNECT_LOG_LEVEL: info
+      CONNECT_PLUGIN_PATH: "/opt/kafka/connect-plugins"
   neo4j:
     image: neo4j:latest
-    container_name: neo4j
     networks:
-      - redpanda_network
+      - kafka_neo4j_lei
     ports:
       - "7474:7474"
       - "7687:7687"
@@ -117,4 +116,5 @@ services:
 #      - ./neo4j/plugins:/plugins
     environment:
       NEO4J_AUTH: neo4j/password
-      NEO4JLABS_PLUGINS: '["apoc"]'
+      NEO4J_PLUGINS: '["apoc"]'
+

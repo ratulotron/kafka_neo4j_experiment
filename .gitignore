@@ -1,6 +1,6 @@
-/connect-plugins/
+/neo4j
+/redpanda
 /data/
-/neo4j/
 
 __pycache__/
 *.py[cod]
@@ -9,3 +9,6 @@ __pycache__/
 
 .idea
 .vscode
+
+# macOS
+.DS_Store
