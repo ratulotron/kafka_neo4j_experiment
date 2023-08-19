@@ -1,4 +1,20 @@
-from kafka import KafkaAdminClient
-from kafka.admin import NewTopic
+from confluent_kafka.admin import AdminClient
+from confluent_kafka.cimpl import NewTopic
+
+from configs import BOOTSTRAP_SERVERS, TOPIC_NAME, PARTITION_COUNT
+
+admin = AdminClient({"bootstrap.servers": BOOTSTRAP_SERVERS})
+topic = NewTopic(
+    topic=TOPIC_NAME,
+    num_partitions=PARTITION_COUNT,
+    replication_factor=1,
+)
 
 
+def bootstrap():
+    if TOPIC_NAME in admin.list_topics().topics:
+        print(TOPIC_NAME)
+        print(f"Topic {TOPIC_NAME} already exists.")
+    else:
+        admin.create_topics([topic])
+        print(f"Topic {TOPIC_NAME} created.")

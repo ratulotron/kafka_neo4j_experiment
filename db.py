@@ -1,4 +1,12 @@
+import logging
+import sys
+
 from neo4j import GraphDatabase
+
+
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
+
+logger = logging.getLogger(__name__)
 
 
 class Neo4jClient:
@@ -12,9 +20,12 @@ class Neo4jClient:
         return self.driver.session().run("MATCH (n) RETURN count(n) as count").single()[0]
 
     def create(self, data):
-        with self.driver.session() as session:
-            greeting = session.execute_write(self._create, data)
-            print(greeting)
+        try:
+            with self.driver.session() as session:
+                result = session.execute_write(self._create, data)
+                logger.info(result)
+        except Exception as err:
+            logger.error(f"Error creating company: {data=}, {err=}, {type(err)=}")
 
     @staticmethod
     def _create(tx, data):
