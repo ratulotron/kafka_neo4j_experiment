@@ -2,7 +2,6 @@ import logging
 import sys
 
 from neo4j import GraphDatabase
-
 from settings import Neo4jConfig
 
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
@@ -19,7 +18,9 @@ class Neo4jClient:
         self.driver.close()
 
     def stats(self):
-        return self.driver.session().run("MATCH (n) RETURN count(n) as count").single()[0]
+        return (
+            self.driver.session().run("MATCH (n) RETURN count(n) as count").single()[0]
+        )
 
     def create(self, data):
         try:
@@ -31,7 +32,8 @@ class Neo4jClient:
 
     @staticmethod
     def _create(tx, data):
-        result = tx.run("""
+        result = tx.run(
+            """
             CALL apoc.merge.node(
                 ["Company"],
                 {lei: $data.lei},
@@ -42,13 +44,17 @@ class Neo4jClient:
             SET node.updated_at = date()
             RETURN node
 
-        """, data=data)
+        """,
+            data=data,
+        )
         return result.single()[0]
 
     def reset(self):
         try:
             with self.driver.session() as session:
-                result = session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
+                result = session.execute_write(
+                    lambda tx: tx.run("MATCH (n) DETACH DELETE n")
+                )
                 logger.info(result)
         except Exception as err:
             logger.error(f"Error resetting database: {err=}, {type(err)=}")

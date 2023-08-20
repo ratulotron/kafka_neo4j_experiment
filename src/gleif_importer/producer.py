@@ -1,8 +1,8 @@
 import logging
-from confluent_kafka import Producer
-from settings import cfg
-from schema import Schema
 
+from confluent_kafka import Producer
+from schema import Schema
+from settings import cfg
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class CompanyProducer:
                 "client.id": "gleif",
                 "bootstrap.servers": cfg.redpanda.bootstrap_servers,
                 "enable.idempotence": "true",
-                'acks': 'all',
+                "acks": "all",
             }
         self.producer = Producer(config)
 
@@ -35,7 +35,7 @@ class CompanyProducer:
                 topic=topic,
                 value=obj.model_dump_json(),
                 key=obj.lei,
-                callback=self.delivery_report
+                callback=self.delivery_report,
             )
         except Exception as err:
             logger.error(f"Error while producing record {record}, {err=}")
@@ -50,5 +50,3 @@ class CompanyProducer:
     def close(self):
         self.producer.poll(10000)
         self.producer.flush()
-
-

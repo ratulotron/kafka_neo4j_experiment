@@ -1,34 +1,36 @@
 #!/usr/bin/env python
 
+import asyncio
 import csv
 import logging
 from pprint import pprint
 
+import aiohttp
+import click
 import pendulum
 from neo4j import GraphDatabase
 from smart_open import open
-import click
 
-import aiohttp
-import asyncio
-
-
-BACKEND_URI = 'http://localhost:3000'
+BACKEND_URI = "http://localhost:3000"
 
 
 tasks = []
 last_id = None
 
 
-async def _push(record: dict, logger: logging.Logger = None):
+async def _push(record: dict, logger: logging.Logger | None = None):
     async with aiohttp.ClientSession() as session:
-        async with session.post(f'{BACKEND_URI}/company', json=record) as resp:
+        async with session.post(f"{BACKEND_URI}/company", json=record) as resp:
             if resp.status != 200:
                 logger.error(f"Error while processing record {resp.status=}")
                 logger.error(await resp.text())
 
 
-async def _loader(filepath: str = "./data/gleif.csv", limit: int = 10, logger: logging.Logger = None):
+async def _loader(
+    filepath: str = "./data/gleif.csv",
+    limit: int = 10,
+    logger: logging.Logger | None = None,
+):
     global last_id
     try:
         with open(filepath) as dataset:
@@ -36,7 +38,7 @@ async def _loader(filepath: str = "./data/gleif.csv", limit: int = 10, logger: l
             for current_num, record in enumerate(csv_reader, start=1):
                 logger.info(f"Processing record no. {current_num}")
                 await _push(record)
-                last_id = record['LEI']
+                last_id = record["LEI"]
                 if current_num >= limit:
                     break
     except Exception as err:
@@ -73,38 +75,44 @@ def run_benchmark(filepath, limit, logger):
         if last_id:
             print(f"Benchmarking the loader with last id {last_id}")
             while True:
-                result = session.run(f'MATCH (record:Company {{lei: "{last_id}"}}) RETURN record').single()
+                result = session.run(
+                    f'MATCH (record:Company {{lei: "{last_id}"}}) RETURN record'
+                ).single()
                 if result:
                     end_data_write = pendulum.now()
                     data = result.data()["record"]
                     break
-            report["total_time_data_write"] = (end_data_write - end_api_calls).in_words()
+            report["total_time_data_write"] = (
+                end_data_write - end_api_calls
+            ).in_words()
         else:
-            print(f"Can't benchmark with specifying last id")
+            print("Can't benchmark with specifying last id")
             return
 
         report["total_time"] = (end_data_write - start).in_words()
 
         report.update(
             {
-                "total_companies": session.run("MATCH (n) RETURN count(n) as count").single().data()["count"],
-                "total_relationships": session.run("MATCH ()-[r]->() RETURN count(r) as count").single().data()["count"],
+                "total_companies": session.run("MATCH (n) RETURN count(n) as count")
+                .single()
+                .data()["count"],
+                "total_relationships": session.run(
+                    "MATCH ()-[r]->() RETURN count(r) as count"
+                )
+                .single()
+                .data()["count"],
                 "last_record": data,
             }
         )
 
-        print(f"Stats:")
-        pprint(
-            report,
-            indent=4,
-            depth=2
-        )
+        print("Stats:")
+        pprint(report, indent=4, depth=2)
 
 
 @click.command()
-@click.option('--filepath', default='./data/gleif.csv', help='Path to the dataset')
-@click.option('--limit', default=0, help='Limit the number of records to be processed')
-@click.option('--benchmark', default=False, help='Benchmark the loader')
+@click.option("--filepath", default="./data/gleif.csv", help="Path to the dataset")
+@click.option("--limit", default=0, help="Limit the number of records to be processed")
+@click.option("--benchmark", default=False, help="Benchmark the loader")
 def loader(filepath: str, limit: int, benchmark: bool):
     logger = logging.getLogger(__name__)
 
@@ -116,5 +124,5 @@ def loader(filepath: str, limit: int, benchmark: bool):
     run_benchmark(filepath, limit, logger)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     loader()

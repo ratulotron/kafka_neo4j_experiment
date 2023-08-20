@@ -15,7 +15,7 @@ class RedpandaConfig(BaseModel):
 
 
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_nested_delimiter='__')
+    model_config = SettingsConfigDict(env_nested_delimiter="__")
 
     neo4j: Neo4jConfig = Neo4jConfig()
     redpanda: RedpandaConfig = RedpandaConfig()

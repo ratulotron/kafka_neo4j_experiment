@@ -1,0 +1,56 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # No CSV or other data files should be committed
+      - id: check-added-large-files
+        stages:
+          - commit
+      # Prevent from committing syntactic errors
+      - id: check-ast
+        stages:
+          - commit
+      # Prevent merge conflict errors to be committed
+      - id: check-merge-conflict
+        stages:
+          - commit
+      # Check TOML file format, including the pyproject.toml
+      - id: check-toml
+        stages:
+          - commit
+      # Debugging functions like breakpoint() shouldn't be committed
+      - id: debug-statements
+        stages:
+          - commit
+      # Submodules make maintenance harder
+      # REF: https://abildskov.io/2021/03/28/why-i-hate-submodules/
+      - id: forbid-submodules
+        stages:
+          - commit
+      # Whitespace and line ending related
+      - id: end-of-file-fixer
+        stages:
+          - commit
+      - id: trailing-whitespace
+        stages:
+          - commit
+      - id: mixed-line-ending
+        args: [ --fix=lf ]
+        stages:
+          - commit
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        language_version: python3.11
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: [ '--baseline', '.secrets.baseline' ]
+        exclude: poetry.lock
+  # REF: https://whynothugo.nl/journal/2023/01/20/notes-on-ruff/
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.285
+    hooks:
+      - id: ruff

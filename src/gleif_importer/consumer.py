@@ -1,17 +1,14 @@
 import logging
 import socket
-import sys
 import uuid
 from typing import Generator
-from typing_extensions import Self
 
 from admin import bootstrap
+from confluent_kafka import Consumer, KafkaError, KafkaException, Message
+from db import Neo4jClient
 from schema import Schema
 from settings import cfg
-from db import Neo4jClient
-
-from confluent_kafka import Consumer, KafkaError, KafkaException, Message
-
+from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -38,10 +35,7 @@ class CompanyConsumer:
 
     @staticmethod
     def commit_callback(kafka_error, topic_partition):
-        response = {
-            "kafka_error": kafka_error,
-            "topic_partition": topic_partition
-        }
+        response = {"kafka_error": kafka_error, "topic_partition": topic_partition}
         logger.info("Commit info: " + str(response))
 
     def for_topic(self, topic: str) -> Self:
@@ -57,7 +51,10 @@ class CompanyConsumer:
             if __msg.error():
                 if __msg.error().code() == KafkaError._PARTITION_EOF:
                     # End of partition event
-                    logger.error('%% %s [%d] reached end at offset %d\n' % (msg.topic(), msg.partition(), msg.offset()))
+                    logger.error(
+                        "%% %s [%d] reached end at offset %d\n"
+                        % (msg.topic(), msg.partition(), msg.offset())
+                    )
                 elif __msg.error():
                     raise KafkaException(__msg.error())
                 raise KafkaException(__msg.error())

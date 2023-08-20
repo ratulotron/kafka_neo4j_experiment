@@ -186,4 +186,3 @@ services:
     volumes:
       - ${PWD}/src/gleif_importer:/app
       - ${PWD}/data:/data
-

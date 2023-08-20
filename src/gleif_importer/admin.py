@@ -1,8 +1,6 @@
 from confluent_kafka.admin import AdminClient
 from confluent_kafka.cimpl import NewTopic
-
 from settings import cfg
-
 
 admin = AdminClient({"bootstrap.servers": cfg.redpanda.bootstrap_servers})
 
