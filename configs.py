@@ -1,4 +1,0 @@
-BOOTSTRAP_SERVERS = "localhost:19092"
-TOPIC_NAME = "companies"
-PARTITION_COUNT = 3
-

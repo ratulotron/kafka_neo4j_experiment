@@ -1,11 +1,12 @@
-/neo4j
-/redpanda
+/ops/neo4j
+/ops/redpanda
 /data/
 
 __pycache__/
 *.py[cod]
 *$py.class
 .tool-versions
+requirements.txt
 
 .idea
 .vscode
