@@ -1,4 +1,5 @@
 import csv
+import logging
 import time
 from datetime import timedelta
 
@@ -23,33 +24,22 @@ neo = Neo4jClient(
 )
 
 
-@app.route("/load", methods=["GET"])
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers = gunicorn_logger.handlers
+app.logger.setLevel(gunicorn_logger.level)
+
+
+@app.route("/company", methods=["POST"])
 def load():
-    limit = int(request.args.get("limit", "0"))
-
-    try:
-        dataset = open("/data/gleif.csv")
-        csv_reader = csv.DictReader(dataset, delimiter=",")
-    except Exception as err:
-        msg = f"Unexpected {err=}, {type(err)=}"
-        print(msg)
-        return jsonify({"error": msg})
-
+    data = request.json
     producer = CompanyProducer()
-    current_num = 0
-    start_time = time.monotonic()
-    for current_num, record in enumerate(csv_reader, start=1):
-        app.logger.info(f"Processing record no. {current_num}")
-        producer.produce(record)
-        producer.poll(0)
-        if (current_num != 0) and (current_num == limit):
-            break
+    app.logger.debug(f"Processing record: {data}")
+    producer.produce(data)
     producer.close()
-    end_time = time.monotonic()
-    dataset.close()
-    app.logger.info(f"Total companies: {current_num}")
-    app.logger.info(f"Total time: {timedelta(seconds=(end_time - start_time))}")
-    return jsonify({"total_companies": current_num})
+    return jsonify({
+        "message": "company queued",
+        "data": data
+    }, 200)
 
 
 @app.route("/stats", methods=["GET"])

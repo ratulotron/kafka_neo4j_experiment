@@ -151,7 +151,7 @@ services:
     stop_signal: SIGINT
     restart: always
 #    command: ['flask --app app run -p "3000" --debug --reload']
-    command: [ 'python3 -m gunicorn --workers=1 --bind=0.0.0.0:3000 app:app' ]
+    command: [ 'python3 -m gunicorn app:app --workers=1 --bind=0.0.0.0:3000 --reload --log-level=warn' ]
     container_name: web
     networks:
       - kafka_neo4j_lei
