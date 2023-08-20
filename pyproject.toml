@@ -19,6 +19,8 @@ pydantic = "^2.1.1"
 pydantic-settings = "^2.0.3"
 python = "^3.9"
 smart-open = "^6.3.0"
+aiohttp = {extras = ["speedups"], version = "^3.8.5"}
+click = "^8.1.7"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
