@@ -81,7 +81,7 @@ if __name__ == "__main__":
     try:
         for msg in c.messages():
             _msg = Schema.model_validate_json(msg.value())
-            logger.info(f"Consuming record: <{msg.key()}> \n {_msg.model_dump()}")
+            logger.info(f"Consuming record: <{msg.key()}=>")
             neo.create(_msg.model_dump())
             c.commit(message=msg, asynchronous=False)
     except Exception as e:

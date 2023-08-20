@@ -24,9 +24,9 @@ class CompanyProducer:
         """Called once for each message produced to indicate delivery result.
         Triggered by poll() or flush()."""
         if err is not None:
-            print("Message delivery failed: {}".format(err))
-        else:
-            print("Message delivered to {} [{}]".format(msg.topic(), msg.partition()))
+            logger.error("Message delivery failed: {}".format(err))
+            return
+        # print("Message delivered to {} [{}]".format(msg.topic(), msg.partition()))
 
     def produce(self, record: dict, topic: str = cfg.redpanda.topic_name):
         try:
