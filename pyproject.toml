@@ -1,22 +1,24 @@
 [tool.poetry]
-name = "redpanda-workshop"
+name = "gleif_importer"
 version = "0.1.0"
 description = ""
 authors = ["Ratul Minhaz <minhaz.ratul@gmail.com>"]
 readme = "README.md"
-packages = [{include = "redpanda_workshop"}]
+packages = [{include = "gleif_importer", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+confluent-kafka = "^2.2.0"
 flask = "^2.3.2"
 flask-cors = "^4.0.0"
-kafka-python = "^2.0.2"
-smart-open = "^6.3.0"
-pydantic = "^2.1.1"
-neo4j = "^5.11.0"
-confluent-kafka = "^2.2.0"
-orjson = "^3.9.4"
+gunicorn = "^21.2.0"
 httpie = "^3.2.2"
+kafka-python = "^2.0.2"
+neo4j = "^5.11.0"
+orjson = "^3.9.4"
+pydantic = "^2.1.1"
+pydantic-settings = "^2.0.3"
+python = "^3.9"
+smart-open = "^6.3.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"

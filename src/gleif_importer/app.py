@@ -9,6 +9,7 @@ from smart_open import open
 
 from admin import bootstrap, delete
 from db import Neo4jClient
+from settings import cfg
 from producer import CompanyProducer
 
 
@@ -17,7 +18,9 @@ app = Flask(__name__)
 cors = CORS(app)
 
 app.config["CORS_HEADERS"] = "Content-Type"
-neo = Neo4jClient("bolt://localhost:7687", "neo4j", "password")
+neo = Neo4jClient(
+    cfg.neo4j
+)
 
 
 @app.route("/load", methods=["GET"])
@@ -25,7 +28,7 @@ def load():
     limit = int(request.args.get("limit", "0"))
 
     try:
-        dataset = open("./data/gleif.csv")
+        dataset = open("/data/gleif.csv")
         csv_reader = csv.DictReader(dataset, delimiter=",")
     except Exception as err:
         msg = f"Unexpected {err=}, {type(err)=}"

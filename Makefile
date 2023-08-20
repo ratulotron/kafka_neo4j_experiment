@@ -1,11 +1,23 @@
-panda:
-	docker compose up -d
+DOCKER_COMPOSE_CMD=docker compose -f ./ops/docker-compose.yml
 
-producer:
-	poetry run flask --app app run --debug -p 6000
+req:
+	poetry export -f requirements.txt --output ./ops/requirements.txt --without-hashes
 
-consumer:
-	poetry run python consumer.py
+build:
+	docker build -t gleif_importer:latest -f ./ops/base.Dockerfile .
+	${DOCKER_COMPOSE_CMD} build
+
+up:
+	${DOCKER_COMPOSE_CMD} up
+
+consumers:
+	${DOCKER_COMPOSE_CMD} --profile consumer up consumer
+
+down:
+	${DOCKER_COMPOSE_CMD} down
+
+all: req build up
+
 
 reload_conn:
 	poetry run http DELETE localhost:8083/connectors/Neo4jSinkConnectorJSONString

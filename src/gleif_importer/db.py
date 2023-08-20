@@ -3,6 +3,7 @@ import sys
 
 from neo4j import GraphDatabase
 
+from settings import Neo4jConfig
 
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 
@@ -10,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class Neo4jClient:
-    def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+    def __init__(self, conf: Neo4jConfig):
+        auth = (conf.user, conf.password)
+        self.driver = GraphDatabase.driver(conf.uri, auth=auth)
 
     def close(self):
         self.driver.close()
@@ -33,7 +35,7 @@ class Neo4jClient:
             CALL apoc.merge.node(
                 ["Company"],
                 {lei: $data.lei},
-                $data.company
+                $data
             )
             YIELD node
             SET node.created_at = coalesce(node.created_at, date())

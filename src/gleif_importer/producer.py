@@ -1,8 +1,8 @@
 import logging
 from confluent_kafka import Producer
-
-from configs import BOOTSTRAP_SERVERS, TOPIC_NAME
+from settings import cfg
 from schema import Schema
+
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class CompanyProducer:
             config = {
                 # "transactional.id": "gleif",
                 "client.id": "gleif",
-                "bootstrap.servers": BOOTSTRAP_SERVERS,
+                "bootstrap.servers": cfg.redpanda.bootstrap_servers,
                 "enable.idempotence": "true",
                 'acks': 'all',
             }
@@ -28,7 +28,7 @@ class CompanyProducer:
         else:
             print("Message delivered to {} [{}]".format(msg.topic(), msg.partition()))
 
-    def produce(self, record: dict, topic: str = TOPIC_NAME):
+    def produce(self, record: dict, topic: str = cfg.redpanda.topic_name):
         try:
             obj = Schema(**record)
             self.producer.produce(
