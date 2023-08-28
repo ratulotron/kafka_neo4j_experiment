@@ -4,7 +4,7 @@ req:
 	poetry export -f requirements.txt --output ./ops/requirements.txt --without-hashes
 
 build:
-	docker build -t gleif_importer:latest -f ./ops/base.Dockerfile .
+	docker build -t gleif_importer:latest -f ./ops/Docker .
 	${DOCKER_COMPOSE_CMD} build
 
 up:

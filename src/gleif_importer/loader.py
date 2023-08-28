@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
-import asyncio
 import csv
 import logging
 from pprint import pprint
 
-import aiohttp
 import click
 import pendulum
+import requests
 from neo4j import GraphDatabase
 from smart_open import open
+
+from producer import CompanyProducer
 
 BACKEND_URI = "http://localhost:3000"
 
@@ -18,32 +19,27 @@ tasks = []
 last_id = None
 
 
-async def _push(record: dict, logger: logging.Logger | None = None):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(f"{BACKEND_URI}/company", json=record) as resp:
-            if resp.status != 200:
-                logger.error(f"Error while processing record {resp.status=}")
-                logger.error(await resp.text())
-
-
-async def _loader(
+def _loader(
     filepath: str = "./data/gleif.csv",
-    limit: int = 10,
+    limit: int = 0,
     logger: logging.Logger | None = None,
 ):
     global last_id
+
+    producer = CompanyProducer()
     try:
         with open(filepath) as dataset:
             csv_reader = csv.DictReader(dataset, delimiter=",")
             for current_num, record in enumerate(csv_reader, start=1):
                 logger.info(f"Processing record no. {current_num}")
-                await _push(record)
+                producer.produce(record)
                 last_id = record["LEI"]
-                if current_num >= limit:
+                if (current_num >= limit) and (limit != 0):
                     break
     except Exception as err:
         msg = f"Unexpected {err=}, {type(err)=}"
         print(msg)
+    producer.close()
     return
 
 
@@ -66,7 +62,9 @@ def run_benchmark(filepath, limit, logger):
 
         print("Starting the loader")
         start = pendulum.now()
-        asyncio.run(_loader(filepath, limit, logger))
+
+        _loader(filepath, limit, logger)
+
         end_api_calls = pendulum.now()
         print("Loader done")
 
@@ -118,8 +116,16 @@ def loader(filepath: str, limit: int, benchmark: bool):
 
     if not benchmark:
         logger.setLevel(logging.DEBUG)
-        asyncio.run(_loader(filepath, limit, logger))
+        _loader(filepath, limit, logger)
         return
+
+    result = requests.get(f"{BACKEND_URI}/reset")
+    if result.status_code != 200:
+        logger.error(f"Error while resetting the database {result.status_code=}")
+        logger.error(result.text)
+        return
+
+    logger.info("Kafka reset done")
 
     run_benchmark(filepath, limit, logger)
 

@@ -125,19 +125,15 @@ services:
       - "7687:7687"
     volumes:
         - neo4j:/data
-#    volumes:
-#      - ${PWD}/ops/neo4j/data:/data
-#      - ${PWD}/ops/neo4j/logs:/logs
-#      - ${PWD}/ops/neo4j/import:/var/lib/neo4j/import
-#      - ./neo4j/plugins:/plugins
     environment:
-      NEO4J_AUTH: neo4j/password
+      <<: *x-common-env
+      NEO4J_AUTH: ${NEO4J__USER}/${NEO4J__PASSWORD}
       NEO4J_PLUGINS: '["apoc"]'
 
   base:
     build:
       context: ${PWD}
-      dockerfile: ${PWD}/ops/base.Dockerfile
+      dockerfile: ${PWD}/ops/Docker
     image: gleif_importer:dev
     container_name: base
     restart: no
@@ -179,10 +175,10 @@ services:
       replicas: 4
     networks:
       - kafka_neo4j_lei
-#    depends_on:
-#      - neo4j
-#      - console
-#      - web
+    depends_on:
+      - neo4j
+      - console
+      - web
     volumes:
       - ${PWD}/src/gleif_importer:/app
       - ${PWD}/data:/data
