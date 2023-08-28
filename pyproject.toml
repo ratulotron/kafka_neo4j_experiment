@@ -9,18 +9,19 @@ packages = [{include = "gleif_importer", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 confluent-kafka = "^2.2.0"
-flask = "^2.3.2"
+flask = "^2.3"
 flask-cors = "^4.0.0"
 gunicorn = "^21.2.0"
 httpie = "^3.2.2"
 kafka-python = "^2.0.2"
 neo4j = "^5.11.0"
 orjson = "^3.9.4"
-pydantic = "^2.1.1"
+pydantic = "^2"
 pydantic-settings = "^2.0.3"
 smart-open = "^6.3.0"
 aiohttp = {extras = ["speedups"], version = "^3.8.5"}
 click = "^8.1.7"
+polars = {extras = ["fsspec", "pandas", "xlsx2csv"], version = "^0.18.15"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
