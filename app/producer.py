@@ -1,7 +1,7 @@
 import logging
 
 from confluent_kafka import Producer
-from schema import Schema
+import schema
 from settings import cfg
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class CompanyProducer:
 
     def produce(self, record: dict, topic: str = cfg.redpanda.topic_name):
         try:
-            obj = Schema(**record)
+            obj = schema.LEICompany(**record)
             self.producer.produce(
                 topic=topic,
                 value=obj.model_dump_json(),

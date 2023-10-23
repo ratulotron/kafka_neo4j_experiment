@@ -18,9 +18,10 @@ class Neo4jClient:
         self.driver.close()
 
     def stats(self):
-        return (
-            self.driver.session().run("MATCH (n) RETURN count(n) as count").single()[0]
-        )
+        r = self.driver.session().run("MATCH (n) RETURN count(n) as count").single()
+        if r:
+            return r["count"]
+        return 0
 
     def create(self, data):
         try:
@@ -50,11 +51,10 @@ class Neo4jClient:
         return result.single()[0]
 
     def reset(self):
+        query = "MATCH (n) DETACH DELETE n"
         try:
             with self.driver.session() as session:
-                result = session.execute_write(
-                    lambda tx: tx.run("MATCH (n) DETACH DELETE n")
-                )
+                result = session.execute_write(lambda tx: tx.run(query))
                 logger.info(result)
         except Exception as err:
             logger.error(f"Error resetting database: {err=}, {type(err)=}")

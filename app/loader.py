@@ -6,25 +6,29 @@ from pprint import pprint
 
 import click
 import pendulum
+from pendulum.period import Period
 import requests
 from neo4j import GraphDatabase
 from smart_open import open
 
 from producer import CompanyProducer
 
+
 BACKEND_URI = "http://localhost:3000"
 
 
-tasks = []
+tasks: list = []
 last_id = None
 
 
 def _loader(
-    filepath: str = "./data/gleif.csv",
+    logger: logging.Logger,
+    filepath: str,
     limit: int = 0,
-    logger: logging.Logger | None = None,
 ):
     global last_id
+
+    logger.info(f"Loading data from {filepath}")
 
     producer = CompanyProducer()
     try:
@@ -63,45 +67,40 @@ def run_benchmark(filepath, limit, logger):
         print("Starting the loader")
         start = pendulum.now()
 
-        _loader(filepath, limit, logger)
+        _loader(logger, filepath, limit)
 
         end_api_calls = pendulum.now()
         print("Loader done")
-
-        report["total_time_api_calls"] = (end_api_calls - start).in_words()
+        t: Period = end_api_calls - start
+        report["total_time_api_calls"] = t.in_words()
 
         if last_id:
             print(f"Benchmarking the loader with last id {last_id}")
             while True:
-                result = session.run(
-                    f'MATCH (record:Company {{lei: "{last_id}"}}) RETURN record'
-                ).single()
+                result = session.run(f'MATCH (record:Company {{lei: "{last_id}"}}) RETURN record').single()
                 if result:
                     end_data_write = pendulum.now()
                     data = result.data()["record"]
                     break
-            report["total_time_data_write"] = (
-                end_data_write - end_api_calls
-            ).in_words()
+            report["total_time_data_write"] = (end_data_write - end_api_calls).in_words()
         else:
             print("Can't benchmark with specifying last id")
             return
 
         report["total_time"] = (end_data_write - start).in_words()
 
-        report.update(
-            {
-                "total_companies": session.run("MATCH (n) RETURN count(n) as count")
-                .single()
-                .data()["count"],
-                "total_relationships": session.run(
-                    "MATCH ()-[r]->() RETURN count(r) as count"
-                )
-                .single()
-                .data()["count"],
-                "last_record": data,
-            }
-        )
+        # Total companies
+        r = session.run("MATCH (n) RETURN count(n) as count").single()
+        if r:
+            report["total_companies"] = r.data()["count"]
+
+        # Total relationships
+        r = session.run("MATCH ()-[r]->() RETURN count(r) as count").single()
+        if r:
+            report["total_relationships"] = r.data()["count"]
+
+        # Last record
+        report["last_record"] = data
 
         print("Stats:")
         pprint(report, indent=4, depth=2)
@@ -111,12 +110,12 @@ def run_benchmark(filepath, limit, logger):
 @click.option("--filepath", default="./data/gleif.csv", help="Path to the dataset")
 @click.option("--limit", default=0, help="Limit the number of records to be processed")
 @click.option("--benchmark", default=False, help="Benchmark the loader")
-def loader(filepath: str, limit: int, benchmark: bool):
+def loader(filepath: str = "/data/gleif.csv", limit: int = 0, benchmark: bool = False):
     logger = logging.getLogger(__name__)
 
     if not benchmark:
         logger.setLevel(logging.DEBUG)
-        _loader(filepath, limit, logger)
+        _loader(filepath=filepath, limit=limit, logger=logger)
         return
 
     result = requests.get(f"{BACKEND_URI}/reset")

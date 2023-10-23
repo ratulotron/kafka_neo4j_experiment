@@ -1,5 +1,12 @@
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from enum import Enum
+
+
+class Topics(Enum):
+    RECORD = "record"
+    COMPANY = "company"
+    RELATIONSHIP = "relationship"
 
 
 class Neo4jConfig(BaseModel):

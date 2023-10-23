@@ -22,13 +22,90 @@ smart-open = "^6.3.0"
 aiohttp = {extras = ["speedups"], version = "^3.8.5"}
 click = "^8.1.7"
 polars = {extras = ["fsspec", "pandas", "xlsx2csv"], version = "^0.18.15"}
+pendulum = "^2.1.2"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"
 jupyter = "^1.0.0"
 pre-commit = "^3.3.3"
 detect-secrets = "^1.4.0"
+datamodel-code-generator = "^0.21.4"
+mypy = "^1.6.1"
+mypy-extensions = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["E4", "E7", "E9", "F"]
+ignore = []
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pypackages__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+per-file-ignores = {}
+
+line-length = 120
+
+target-version = "py311"
+
+
+
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.pre_commit]
+exclude = '''
+\.eggs
+| \.git
+| \.hg
+| \.mypy_cache
+| \.tox
+| \.venv
+| _build
+| buck-out
+| build
+| dist
+'''
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = true

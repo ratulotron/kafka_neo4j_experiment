@@ -6,7 +6,7 @@ from typing import Generator
 from admin import bootstrap
 from confluent_kafka import Consumer, KafkaError, KafkaException, Message
 from db import Neo4jClient
-from schema import Schema
+import schema
 from settings import cfg
 from typing_extensions import Self
 
@@ -16,20 +16,24 @@ logger.setLevel(logging.DEBUG)
 neo = Neo4jClient(cfg.neo4j)
 
 
-class CompanyConsumer:
+def make_config(topic_name, callback):
+    return {
+        "bootstrap.servers": "plaintext://" + cfg.redpanda.bootstrap_servers,
+        "group.id": topic_name,
+        "enable.auto.commit": False,
+        "auto.offset.reset": "earliest",
+        "group.instance.id": socket.gethostname() + str(uuid.uuid4()),
+        # "security.protocol": "SSL",
+        "on_commit": callback,
+        "client.id": socket.gethostname(),
+        # "security.protocol": None
+    }
+
+
+class RecordConsumer:
     def __init__(self, config: dict | None = None):
         if config is None:
-            config = {
-                "bootstrap.servers": "plaintext://" + cfg.redpanda.bootstrap_servers,
-                "group.id": cfg.redpanda.topic_name,
-                "enable.auto.commit": False,
-                "auto.offset.reset": "earliest",
-                "group.instance.id": socket.gethostname() + str(uuid.uuid4()),
-                # "security.protocol": "SSL",
-                "on_commit": self.commit_callback,
-                "client.id": socket.gethostname(),
-                # "security.protocol": None
-            }
+            config = make_config(cfg.topics.RECORD, self.commit_callback)
         self.consumer = Consumer(config)
         logger.info("Initialized consumer: " + str(config))
 
@@ -51,10 +55,7 @@ class CompanyConsumer:
             if __msg.error():
                 if __msg.error().code() == KafkaError._PARTITION_EOF:
                     # End of partition event
-                    logger.error(
-                        "%% %s [%d] reached end at offset %d\n"
-                        % (msg.topic(), msg.partition(), msg.offset())
-                    )
+                    logger.error("%% %s [%d] reached end at offset %d\n" % (msg.topic(), msg.partition(), msg.offset()))
                 elif __msg.error():
                     raise KafkaException(__msg.error())
                 raise KafkaException(__msg.error())
@@ -73,11 +74,11 @@ class CompanyConsumer:
 
 if __name__ == "__main__":
     bootstrap()
-    c = CompanyConsumer().for_topic(cfg.redpanda.topic_name)
+    c = RecordConsumer().for_topic(cfg.redpanda.topic_name)
 
     try:
         for msg in c.messages():
-            _msg = Schema.model_validate_json(msg.value())
+            _msg = schema.LEICompany.model_validate_json(msg.value())
             logger.info(f"Consuming record: <{msg.key()=}>")
             neo.create(_msg.model_dump())
             c.commit(message=msg, asynchronous=False)

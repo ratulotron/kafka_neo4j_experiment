@@ -2,11 +2,11 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /src
 
-COPY ./ops/requirements.txt /app
+COPY ./ops/requirements.txt /src
 RUN pip3 install -r requirements.txt
 
-COPY ./src/gleif_importer /app
+COPY ./src /src
 
 ENTRYPOINT ["/bin/sh", "-c"]

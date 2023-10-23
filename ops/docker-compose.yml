@@ -9,6 +9,7 @@ x-common:
     NEO4J__URI: bolt://neo4j:7687
     NEO4J__USER: neo4j
     NEO4J__PASSWORD: password
+    NEO4J__AUTH: neo4j/password
 
 name: kafka_neo4j_lei
 networks:
@@ -20,7 +21,7 @@ volumes:
 services:
   redpanda:
     image: docker.redpanda.com/redpandadata/redpanda:latest
-    container_name: redpanda
+    container_name: gleif_redpanda
     command:
       - redpanda start
       - --smp 1
@@ -56,7 +57,7 @@ services:
       start_period: 5s
   console:
     image: docker.redpanda.com/redpandadata/console:latest
-    container_name: console
+    container_name: gleif_console
     entrypoint: /bin/sh
     command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/cfg.yml; /app/console"
     environment:
@@ -85,7 +86,7 @@ services:
 #  connect:
 #    image: docker.redpanda.com/redpandadata/connectors:latest
 #    hostname: connect
-#    container_name: connect
+#    container_name: gleif_connect
 #    networks:
 #      - kafka_neo4j_lei
 #    # platform: 'linux/amd64'
@@ -116,7 +117,7 @@ services:
 #      CONNECT_PLUGIN_PATH: "/opt/kafka/connect-plugins"
   neo4j:
     image: neo4j:latest
-    container_name: neo4j
+    container_name: gleif_neo4j
     restart: always
     networks:
       - kafka_neo4j_lei
@@ -124,31 +125,31 @@ services:
       - "7474:7474"
       - "7687:7687"
     volumes:
-        - neo4j:/data
+        - neo4j:/ops/data
     environment:
-      <<: *x-common-env
-      NEO4J_AUTH: ${NEO4J__USER}/${NEO4J__PASSWORD}
+      # <<: *x-common-env
       NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_AUTH: neo4j/password
 
   base:
     build:
       context: ${PWD}
-      dockerfile: ${PWD}/ops/Docker
+      dockerfile: ${PWD}/ops/Dockerfile
     image: gleif_importer:dev
     container_name: base
     restart: no
     networks:
       - kafka_neo4j_lei
 #    volumes:
-#      - ${PWD}/src/gleif_importer:/app
+#      - ${PWD}/app:/app
 #      - ${PWD}/data:/data
   web:
     image: gleif_importer:dev
     stop_signal: SIGINT
     restart: always
 #    command: ['flask --app app run -p "3000" --debug --reload']
-    command: [ 'python3 -m gunicorn app:app --workers=1 --bind=0.0.0.0:3000 --reload --log-level=error' ]
-    container_name: web
+    command: [ 'python3 -m gunicorn server:app --workers=1 --bind=0.0.0.0:3000 --reload --log-level=error' ]
+    container_name: gleif_web
     networks:
       - kafka_neo4j_lei
     depends_on:
@@ -159,7 +160,7 @@ services:
     environment:
       <<: *x-common-env
     volumes:
-      - ${PWD}/src/gleif_importer:/app
+      - ${PWD}/app:/app
       - ${PWD}/data:/data
   consumer:
     profiles:
@@ -180,5 +181,5 @@ services:
       - console
       - web
     volumes:
-      - ${PWD}/src/gleif_importer:/app
+      - ${PWD}/app:/app
       - ${PWD}/data:/data
